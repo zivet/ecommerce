@@ -1,8 +1,11 @@
 package com.example.demo.controllers;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +19,10 @@ import com.example.demo.model.persistence.User;
 import com.example.demo.model.persistence.repositories.CartRepository;
 import com.example.demo.model.persistence.repositories.UserRepository;
 import com.example.demo.model.requests.CreateUserRequest;
+
+import java.io.UnsupportedEncodingException;
+import java.util.Date;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/user")
@@ -56,6 +63,20 @@ public class UserController {
 		user.setPassword(passwordEncoder.encode(createUserRequest.getPassword()));
 		userRepository.save(user);
 		return ResponseEntity.ok(user);
+	}
+
+	@PreAuthorize("authenticated")
+	@GetMapping("/token")
+	public String token(@AuthenticationPrincipal org.springframework.security.core.userdetails.User user) throws UnsupportedEncodingException {
+		String username = user.getUsername().toString();
+		String[] authorities = user.getAuthorities().stream().map(a -> a.getAuthority().toString()).collect(Collectors.toList()).toArray(new String[0]);
+		return JWT.create().withIssuer("IOVERLAP")
+				.withIssuedAt(new Date())
+				.withNotBefore(new Date())
+				.withExpiresAt(new Date(System.currentTimeMillis() + 3_600_00))
+				.withClaim("username", username)
+				.withArrayClaim("authorities", authorities)
+				.sign(Algorithm.HMAC256("MY_SECRET_KEY"));
 	}
 	
 }
