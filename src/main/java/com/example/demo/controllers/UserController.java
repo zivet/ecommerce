@@ -2,6 +2,7 @@ package com.example.demo.controllers;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.example.demo.security.SecurityConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -73,7 +74,7 @@ public class UserController {
 		return JWT.create().withIssuer("IOVERLAP")
 				.withIssuedAt(new Date())
 				.withNotBefore(new Date())
-				.withExpiresAt(new Date(System.currentTimeMillis() + 3_600_00))
+				.withExpiresAt(new Date(System.currentTimeMillis() + SecurityConstants.EXPIRATION_TIME))
 				.withClaim("username", username)
 				.withArrayClaim("authorities", authorities)
 				.sign(Algorithm.HMAC256("MY_SECRET_KEY"));
